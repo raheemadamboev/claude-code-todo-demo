@@ -3,7 +3,7 @@ package xyz.teamgravity.claudecodetododemo.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,7 +23,7 @@ object Routes {
 fun AppNavigation(
     startDestination: String,
     onOnboardingComplete: () -> Unit,
-    viewModel: TodoViewModel = viewModel(),
+    viewModel: TodoViewModel = hiltViewModel(),
 ) {
     val navController = rememberNavController()
     val todos by viewModel.todos.collectAsState()

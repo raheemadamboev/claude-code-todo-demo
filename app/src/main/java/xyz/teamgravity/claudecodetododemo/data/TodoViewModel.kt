@@ -1,17 +1,19 @@
 package xyz.teamgravity.claudecodetododemo.data
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TodoViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val dao = AppDatabase.getInstance(application).todoDao()
+@HiltViewModel
+class TodoViewModel @Inject constructor(
+    private val dao: TodoDao,
+) : ViewModel() {
 
     val todos: StateFlow<List<Todo>> = dao.observeAll()
         .map { entities -> entities.map { it.toTodo() } }

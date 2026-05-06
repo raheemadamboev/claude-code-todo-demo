@@ -5,10 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dagger.hilt.android.AndroidEntryPoint
 import xyz.teamgravity.claudecodetododemo.ui.navigation.AppNavigation
 import xyz.teamgravity.claudecodetododemo.ui.navigation.Routes
 import xyz.teamgravity.claudecodetododemo.ui.theme.ClaudeCodeToDoDemoTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
