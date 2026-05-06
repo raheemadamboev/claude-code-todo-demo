@@ -1,38 +1,68 @@
 package xyz.teamgravity.claudecodetododemo.data
 
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class TodoViewModel : ViewModel() {
+class TodoViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _todos = MutableStateFlow(SAMPLE_TODOS)
-    val todos: StateFlow<List<Todo>> = _todos.asStateFlow()
+    private val dao = AppDatabase.getInstance(application).todoDao()
+
+    val todos: StateFlow<List<Todo>> = dao.observeAll()
+        .map { entities -> entities.map { it.toTodo() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        viewModelScope.launch {
+            if (dao.count() == 0) {
+                val entities = SAMPLE_TODOS.mapIndexed { index, todo ->
+                    todo.toEntity(sortOrder = index)
+                }
+                dao.insertAll(entities)
+            }
+        }
+    }
 
     fun toggle(id: String) {
-        _todos.update { list -> list.map { if (it.id == id) it.copy(done = !it.done) else it } }
+        viewModelScope.launch { dao.toggleDone(id) }
     }
 
     fun remove(id: String) {
-        _todos.update { list -> list.filter { it.id != id } }
+        viewModelScope.launch { dao.deleteById(id) }
     }
 
     fun update(id: String, patch: Todo.() -> Todo) {
-        _todos.update { list -> list.map { if (it.id == id) it.patch() else it } }
+        viewModelScope.launch {
+            val entity = dao.getById(id) ?: return@launch
+            val updatedTodo = entity.toTodo().patch()
+            dao.update(updatedTodo.toEntity(sortOrder = entity.sortOrder))
+        }
     }
 
     fun reorder(fromIdx: Int, toIdx: Int) {
-        _todos.update { list ->
+        viewModelScope.launch {
+            val list = dao.getAll()
+            if (fromIdx !in list.indices || toIdx !in list.indices) return@launch
             val mutable = list.toMutableList()
             val item = mutable.removeAt(fromIdx)
             mutable.add(toIdx, item)
-            mutable
+            val updates = mutable.mapIndexedNotNull { index, entity ->
+                if (entity.sortOrder != index) entity.id to index else null
+            }
+            if (updates.isNotEmpty()) {
+                dao.reorderAll(updates)
+            }
         }
     }
 
     fun add(todo: Todo) {
-        _todos.update { list -> listOf(todo) + list }
+        viewModelScope.launch {
+            dao.insertAtTop(todo.toEntity(sortOrder = 0))
+        }
     }
 }
