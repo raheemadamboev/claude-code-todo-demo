@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ToDo · Android Screens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; background: #ECECE6;
+      font-family: "Roboto", system-ui, sans-serif; color: #2A2A2A; }
+    * { box-sizing: border-box; }
+    .page { padding: 80px 80px 120px; min-height: 100%; }
+    .page-header {
+      max-width: 1200px; margin: 0 auto 64px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      border-bottom: 1px solid rgba(0,0,0,.12); padding-bottom: 24px;
+    }
+    .page-title {
+      font-size: 32px; font-weight: 500; letter-spacing: -0.4px;
+      margin: 0; color: #1A1A1A;
+    }
+    .page-sub { font-size: 13px; color: rgba(0,0,0,.55); margin-top: 6px; }
+    .page-meta {
+      display: flex; gap: 24px; font-size: 11.5px; color: rgba(0,0,0,.55);
+      letter-spacing: 0.4px; text-transform: uppercase;
+    }
+    .page-meta b { display: block; color: #1A1A1A;
+      font-size: 13px; font-weight: 500; letter-spacing: 0;
+      text-transform: none; margin-top: 2px; }
+
+    .section {
+      max-width: 1400px; margin: 0 auto 80px;
+    }
+    .section-head {
+      display: flex; align-items: baseline; gap: 14px;
+      margin-bottom: 24px; padding-bottom: 12px;
+      border-bottom: 1px dashed rgba(0,0,0,.18);
+    }
+    .section-num {
+      font-size: 11.5px; font-weight: 600; color: rgba(0,0,0,.5);
+      letter-spacing: 1.4px; text-transform: uppercase;
+    }
+    .section-title {
+      font-size: 22px; font-weight: 500; color: #1A1A1A;
+      letter-spacing: -0.2px;
+    }
+    .section-sub { color: rgba(0,0,0,.55); font-size: 13.5px; }
+
+    .row {
+      display: flex; gap: 48px; flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .frame {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .frame-label {
+      font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase;
+      color: rgba(0,0,0,.55); font-weight: 600;
+    }
+    .frame-label b {
+      color: #1A1A1A; font-weight: 700; margin-right: 8px;
+    }
+    .frame-caption {
+      font-size: 12.5px; color: rgba(0,0,0,.55);
+      max-width: 360px; line-height: 1.5;
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="phone-shell.jsx"></script>
+  <script type="text/babel" src="todo-state.jsx"></script>
+  <script type="text/babel" src="variant-a.jsx"></script>
+
+  <script type="text/babel">
+    // ─────────────────────────────────────────────────────────
+    // Static screen wrappers — each renders one frame of the app
+    // at a specific state, with no interactivity. Built by reusing
+    // the inner subcomponents directly (no swipe handlers wired).
+    // ─────────────────────────────────────────────────────────
+
+    const T_LIGHT = {
+      primary: '#0B6E4F', onPrimary: '#FFFFFF',
+      primaryContainer: '#9BF0CF', onPrimaryContainer: '#002115',
+      surface: '#F5FBF7', surfaceContainer: '#E9F2EC', surfaceContainerHigh: '#E0EBE3',
+      onSurface: '#172019', onSurfaceVariant: '#3F4943', outline: '#6F7A73',
+      secondary: '#4C6358', secondaryContainer: '#CEE9DA',
+      tertiary: '#3D6373', tertiaryContainer: '#C0E8FB',
+      error: '#BA1A1A', errorContainer: '#FFDAD6',
+    };
+
+    function Frame({ label, num, caption, children }) {
+      return (
+        <div className="frame" data-screen-label={label}>
+          <PhoneShell width={360} height={740} bg={T_LIGHT.surface} fg={T_LIGHT.onSurface} navBg={T_LIGHT.surface}>
+            {children}
+          </PhoneShell>
+          <div>
+            <div className="frame-label"><b>{num}</b>{label}</div>
+            {caption && <div className="frame-caption">{caption}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    // Fixed onboarding page renderer (no carousel, no swipe)
+    function StaticOnboardingPage({ feature }) {
+      const T = T_LIGHT;
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.surface }}>
+          <div style={{ flex: 1, padding: '20px 24px 0', display: 'flex', flexDirection: 'column' }}>
+            <div style={{
+              flex: 1, borderRadius: 32, background: T[feature.color],
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+              {feature.art(T)}
+            </div>
+            <div style={{ padding: '28px 8px 0' }}>
+              <div style={{ fontSize: 28, fontWeight: 500, lineHeight: 1.15, letterSpacing: -0.3, color: T.onSurface }}>
+                {feature.title}
+              </div>
+              <div style={{ marginTop: 12, fontSize: 14.5, lineHeight: 1.55, color: T.onSurfaceVariant }}>
+                {feature.body}
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: '20px 24px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{
+                  height: 8, width: i === feature.idx ? 24 : 8, borderRadius: 4,
+                  background: i === feature.idx ? T.primary : T.outline + '55',
+                }} />
+              ))}
+            </div>
+            <button style={{
+              border: 'none', background: T.primary, color: T.onPrimary,
+              borderRadius: 100, padding: '14px 24px',
+              fontSize: 14.5, fontWeight: 500, letterSpacing: 0.1,
+              boxShadow: '0 1px 2px rgba(0,0,0,.1)',
+            }}>{feature.idx === 2 ? 'Get started' : 'Next'}</button>
+          </div>
+        </div>
+      );
+    }
+
+    // Static list — full feature with both open + completed sections, no handlers
+    function StaticList({ todos, T = T_LIGHT, withFab = true }) {
+      const tagColors = window.TAG_COLORS_LIGHT;
+      const open = todos.filter(t => !t.done);
+      const done = todos.filter(t => t.done);
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.surface, position: 'relative' }}>
+          {/* App bar */}
+          <div style={{ padding: '12px 8px 4px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button style={iconBtn()}>{Icon.help(T.onSurfaceVariant)}</button>
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button style={iconBtn()}>{Icon.search(T.onSurfaceVariant)}</button>
+              <button style={iconBtn()}>{Icon.filter(T.onSurfaceVariant)}</button>
+            </div>
+          </div>
+          <div style={{ padding: '4px 24px 12px' }}>
+            <div style={{ fontSize: 32, fontWeight: 400, letterSpacing: -0.4, color: T.onSurface, lineHeight: 1.1 }}>Today</div>
+            <div style={{ marginTop: 4, color: T.onSurfaceVariant, fontSize: 13.5 }}>
+              Wed, May 6 · {open.length} open · {done.length} done
+            </div>
+          </div>
+          <div style={{ flex: 1, overflowY: 'hidden', padding: '0 16px 16px' }}>
+            {open.map(t => <StaticTodoCard key={t.id} t={t} T={T} tagColors={tagColors} />)}
+            {done.length > 0 && (
+              <div style={{ padding: '20px 8px 8px', fontSize: 11.5, fontWeight: 600,
+                letterSpacing: 0.8, textTransform: 'uppercase', color: T.onSurfaceVariant }}>
+                Completed · {done.length}
+              </div>
+            )}
+            {done.map(t => <StaticTodoCard key={t.id} t={t} T={T} tagColors={tagColors} compact />)}
+          </div>
+          {withFab && (
+            <div style={{
+              position: 'absolute', right: 16, bottom: 16,
+              height: 56, padding: '0 22px 0 18px', borderRadius: 18,
+              background: T.primaryContainer, color: T.onPrimaryContainer,
+              display: 'flex', alignItems: 'center', gap: 8,
+              boxShadow: '0 4px 12px rgba(0,0,0,.18)',
+              fontSize: 14.5, fontWeight: 500,
+            }}>
+              {Icon.plus(T.onPrimaryContainer)} New task
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function StaticTodoCard({ t, T, tagColors, compact, swipeState }) {
+      const tag = tagColors[t.tagColor] || { bg: T.surfaceContainerHigh, fg: T.onSurface };
+      const pri = t.priority;
+      const priColor = pri === 'high' ? T.error : pri === 'medium' ? T.tertiary : T.outline;
+      // swipeState: { dir: 'left'|'right', x: number } shows action
+      const swipeX = swipeState ? (swipeState.dir === 'left' ? -swipeState.x : swipeState.x) : 0;
+      return (
+        <div style={{ position: 'relative', marginBottom: 8 }}>
+          {swipeState && (
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: 22,
+              display: 'flex', alignItems: 'center',
+              justifyContent: swipeState.dir === 'left' ? 'flex-end' : 'flex-start',
+              padding: '0 24px',
+              background: swipeState.dir === 'left' ? T.errorContainer : T.primaryContainer,
+              color: swipeState.dir === 'left' ? T.error : T.onPrimaryContainer,
+            }}>
+              {swipeState.dir === 'left' ? Icon.trash(T.error) : Icon.check(T.onPrimaryContainer)}
+              <span style={{ marginLeft: 8, fontWeight: 500, fontSize: 13 }}>
+                {swipeState.dir === 'left' ? 'Delete' : 'Complete'}
+              </span>
+            </div>
+          )}
+          <div style={{
+            position: 'relative',
+            background: compact ? T.surface : T.surfaceContainer,
+            borderRadius: 22,
+            padding: compact ? '10px 14px' : '12px 14px',
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            transform: `translateX(${swipeX}px)`,
+            border: compact ? `1px solid ${T.surfaceContainerHigh}` : 'none',
+          }}>
+            {/* Static checkbox visual */}
+            <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                background: t.done ? T.primary : 'transparent',
+                border: `2px solid ${t.done ? T.primary : T.outline}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {t.done && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12.5 L10 17.5 L19 7.5" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div style={{ flex: 1, minWidth: 0, paddingTop: 6 }}>
+              <div style={{
+                fontSize: 15, fontWeight: 500, color: T.onSurface,
+                textDecoration: t.done ? 'line-through' : 'none',
+                opacity: t.done ? 0.5 : 1, lineHeight: 1.35,
+              }}>{t.title}</div>
+              {!compact && (
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span style={{
+                    fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 100,
+                    background: tag.bg, color: tag.fg,
+                  }}>{t.tag}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: T.onSurfaceVariant, fontSize: 12 }}>
+                    {Icon.clock(T.onSurfaceVariant)} {t.due}
+                  </span>
+                  {pri === 'high' && (
+                    <span style={{ fontSize: 11, fontWeight: 500, color: priColor }}>● High</span>
+                  )}
+                </div>
+              )}
+            </div>
+            {!compact && (
+              <div style={{ padding: 4, marginTop: 4, opacity: 0.6 }}>
+                {Icon.drag(T.onSurfaceVariant)}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Static detail
+    function StaticDetail({ todo, T = T_LIGHT }) {
+      const tagColors = window.TAG_COLORS_LIGHT;
+      const tag = tagColors[todo.tagColor] || { bg: T.surfaceContainerHigh, fg: T.onSurface };
+      const pri = todo.priority;
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.surface }}>
+          <div style={{ padding: '8px 8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <button style={iconBtn()}>{Icon.arrow_back(T.onSurface)}</button>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button style={iconBtn()}>{Icon.trash(T.onSurfaceVariant)}</button>
+              <button style={iconBtn()}>{Icon.more(T.onSurfaceVariant)}</button>
+            </div>
+          </div>
+          <div style={{ padding: '8px 24px 4px' }}>
+            <span style={{
+              fontSize: 11.5, fontWeight: 500, padding: '4px 12px', borderRadius: 100,
+              background: tag.bg, color: tag.fg, display: 'inline-block',
+            }}>{todo.tag}</span>
+          </div>
+          <div style={{ padding: '12px 24px 0' }}>
+            <div style={{
+              fontSize: 26, fontWeight: 500, lineHeight: 1.2,
+              letterSpacing: -0.3, color: T.onSurface,
+            }}>{todo.title}</div>
+          </div>
+          <div style={{ padding: '20px 16px 0', display: 'grid', gap: 4 }}>
+            <DetailMetaRow T={T} label="Due" value={todo.due} icon={Icon.clock(T.onSurfaceVariant)} />
+            <DetailMetaRow T={T} label="Priority"
+              value={
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: 100,
+                    background: pri === 'high' ? T.error : pri === 'medium' ? T.tertiary : T.outline,
+                  }}/>
+                  {pri[0].toUpperCase() + pri.slice(1)}
+                </span>
+              }
+              icon={Icon.flag(T.onSurfaceVariant)} />
+            <DetailMetaRow T={T} label="Category" value={todo.tag} icon={
+              <div style={{ width: 14, height: 14, borderRadius: 4, background: tag.bg, border: `1px solid ${T.outline}55` }}/>
+            } />
+          </div>
+          <div style={{ padding: '20px 24px 12px', flex: 1 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: 0.8,
+              textTransform: 'uppercase', color: T.onSurfaceVariant, marginBottom: 8 }}>Notes</div>
+            <div style={{
+              background: T.surfaceContainer, borderRadius: 18, padding: '14px 16px',
+              minHeight: 80, fontSize: 14.5, color: T.onSurface, lineHeight: 1.55,
+            }}>{todo.notes || <span style={{ color: T.onSurfaceVariant, fontStyle: 'italic' }}>No notes — tap to add.</span>}</div>
+          </div>
+          <div style={{ padding: '0 16px 16px' }}>
+            <div style={{
+              width: '100%', height: 56, borderRadius: 18,
+              background: T.primary, color: T.onPrimary,
+              fontSize: 15, fontWeight: 500, letterSpacing: 0.1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}>
+              {Icon.check(T.onPrimary)} Mark complete
+            </div>
+          </div>
+        </div>
+      );
+    }
+    function DetailMetaRow({ T, label, value, icon }) {
+      return (
+        <div style={{
+          background: T.surfaceContainer, borderRadius: 14,
+          padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14,
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 12, background: T.surface,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{icon}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11.5, color: T.onSurfaceVariant, letterSpacing: 0.4 }}>{label}</div>
+            <div style={{ fontSize: 14.5, color: T.onSurface, marginTop: 1 }}>{value}</div>
+          </div>
+        </div>
+      );
+    }
+
+    // Static support
+    function StaticSupport({ T = T_LIGHT }) {
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.surface }}>
+          <div style={{ padding: '8px 8px 4px', display: 'flex', alignItems: 'center' }}>
+            <button style={iconBtn()}>{Icon.arrow_back(T.onSurface)}</button>
+          </div>
+          <div style={{ padding: '4px 24px 12px' }}>
+            <div style={{ fontSize: 30, fontWeight: 400, letterSpacing: -0.3, color: T.onSurface, lineHeight: 1.15 }}>
+              We're here<br/>to help.
+            </div>
+            <div style={{ marginTop: 10, fontSize: 14, color: T.onSurfaceVariant, lineHeight: 1.5 }}>
+              Reach the developers directly. We usually answer within a day.
+            </div>
+          </div>
+          <div style={{ padding: '12px 16px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <ContactCard T={T} icon={Icon.phone(T.onPrimaryContainer)}
+              label="Call us" value="+1 (415) 555 — 0142" sub="Mon–Fri, 9am–5pm PT"
+              accent={T.primaryContainer} accentFg={T.onPrimaryContainer} />
+            <ContactCard T={T} icon={Icon.mail(T.onSurface)}
+              label="Email support" value="hello@todoapp.dev" sub="Reply within 24 hours"
+              accent={T.tertiaryContainer} accentFg={T.onSurface} />
+          </div>
+          <div style={{ padding: '24px 24px 8px', fontSize: 11.5, fontWeight: 600,
+            letterSpacing: 0.8, textTransform: 'uppercase', color: T.onSurfaceVariant }}>FAQ</div>
+          <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {['How do I sync across devices?', 'Can I export my tasks?', 'Where is my data stored?'].map((q, i) => (
+              <div key={i} style={{
+                background: T.surfaceContainer, borderRadius: 14,
+                padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}>
+                <span style={{ fontSize: 14, color: T.onSurface }}>{q}</span>
+                {Icon.chev_right(T.onSurfaceVariant)}
+              </div>
+            ))}
+          </div>
+          <div style={{ flex: 1 }}/>
+          <div style={{ padding: '8px 24px 16px', fontSize: 11.5, color: T.onSurfaceVariant, textAlign: 'center' }}>
+            ToDo · v1.4.0 (build 2026.05)
+          </div>
+        </div>
+      );
+    }
+    function ContactCard({ T, icon, label, value, sub, accent, accentFg }) {
+      return (
+        <div style={{
+          background: T.surfaceContainer, borderRadius: 22, padding: 14,
+          display: 'flex', alignItems: 'center', gap: 14,
+        }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: 18,
+            background: accent, color: accentFg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{icon}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11.5, color: T.onSurfaceVariant, letterSpacing: 0.4 }}>{label}</div>
+            <div style={{ fontSize: 16, color: T.onSurface, marginTop: 1 }}>{value}</div>
+            <div style={{ fontSize: 12, color: T.onSurfaceVariant, marginTop: 2 }}>{sub}</div>
+          </div>
+          {Icon.chev_right(T.onSurfaceVariant)}
+        </div>
+      );
+    }
+
+    function iconBtn() {
+      return {
+        appearance: 'none', border: 'none', background: 'transparent',
+        width: 40, height: 40, borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      };
+    }
+
+    // ─── Onboarding feature definitions (matching variant-a.jsx art) ───
+    const ONBOARDING_FEATURES = [
+      { idx: 0, title: 'Capture every thought', body: 'Quick-add tasks with tags, due dates and notes — without breaking your flow.', color: 'primaryContainer', art: (T) => React.createElement(window.A_Art_Capture, { T }) },
+      { idx: 1, title: 'Stay on top of your day', body: 'Swipe to complete, drag to reorder, pull to refresh. The list adapts to you.', color: 'tertiaryContainer', art: (T) => React.createElement(window.A_Art_Sort, { T }) },
+      { idx: 2, title: 'Focus when it matters', body: 'Priorities, categories and clean details so the next step is always obvious.', color: 'secondaryContainer', art: (T) => React.createElement(window.A_Art_Focus, { T }) },
+    ];
+
+    // ─── Sample data variants for completed-state visualization ───
+    const TODOS_DEFAULT = SAMPLE_TODOS;
+    const TODOS_EMPTY = [];
+    const FIRST_OPEN_TODO = SAMPLE_TODOS.find(t => !t.done);
+    const HIGH_PRIORITY_TODO = SAMPLE_TODOS.find(t => t.priority === 'high');
+
+    function App() {
+      return (
+        <div className="page">
+          <div className="page-header">
+            <div>
+              <h1 className="page-title">ToDo · Android</h1>
+              <div className="page-sub">Material You · Expressive · 360 × 740 dp · Pixel-class viewport</div>
+            </div>
+            <div className="page-meta">
+              <div>Version<b>1.4.0</b></div>
+              <div>Date<b>May 6, 2026</b></div>
+              <div>Theme<b>Light · Material 3</b></div>
+              <div>Frames<b>9 screens</b></div>
+            </div>
+          </div>
+
+          {/* ─── Onboarding ─── */}
+          <div className="section">
+            <div className="section-head">
+              <span className="section-num">01 — Onboarding</span>
+              <span className="section-title">Feature carousel</span>
+              <span className="section-sub">3 horizontally-swipeable pages, indicator + button anchored bottom.</span>
+            </div>
+            <div className="row">
+              <Frame num="01.1" label="Onboarding · Capture" caption="First page. Active dot = page 1. Primary button reads 'Next'.">
+                <StaticOnboardingPage feature={ONBOARDING_FEATURES[0]} />
+              </Frame>
+              <Frame num="01.2" label="Onboarding · Stay on top" caption="Second page after a swipe-left gesture. Active dot shifts to position 2.">
+                <StaticOnboardingPage feature={ONBOARDING_FEATURES[1]} />
+              </Frame>
+              <Frame num="01.3" label="Onboarding · Focus" caption="Final page. Button label changes to 'Get started'; tapping it routes to List.">
+                <StaticOnboardingPage feature={ONBOARDING_FEATURES[2]} />
+              </Frame>
+            </div>
+          </div>
+
+          {/* ─── Todo List ─── */}
+          <div className="section">
+            <div className="section-head">
+              <span className="section-num">02 — Todo List</span>
+              <span className="section-title">Home / Today</span>
+              <span className="section-sub">Default state, swipe-action affordances, empty state.</span>
+            </div>
+            <div className="row">
+              <Frame num="02.1" label="List · Default" caption="Open tasks above, completed section collapsed at the bottom. FAB pinned bottom-right.">
+                <StaticList todos={TODOS_DEFAULT} />
+              </Frame>
+              <Frame num="02.2" label="List · Swipe right (complete)" caption="First card mid-swipe to the right; primary container reveals the 'Complete' action.">
+                <StaticListWithSwipe dir="right" />
+              </Frame>
+              <Frame num="02.3" label="List · Swipe left (delete)" caption="Second card mid-swipe to the left; error container reveals the 'Delete' action.">
+                <StaticListWithSwipe dir="left" />
+              </Frame>
+              <Frame num="02.4" label="List · Empty state" caption="Zero open tasks. Heading copy adapts; FAB remains the primary path forward.">
+                <StaticListEmpty />
+              </Frame>
+            </div>
+          </div>
+
+          {/* ─── Detail ─── */}
+          <div className="section">
+            <div className="section-head">
+              <span className="section-num">03 — Todo Detail</span>
+              <span className="section-title">Task details</span>
+              <span className="section-sub">Reached by tapping any list row.</span>
+            </div>
+            <div className="row">
+              <Frame num="03.1" label="Detail · Open task" caption="Top app bar with back + overflow. Category chip, title, meta tiles, notes, primary action.">
+                <StaticDetail todo={FIRST_OPEN_TODO} />
+              </Frame>
+              <Frame num="03.2" label="Detail · High priority"
+                caption="Same layout, high-priority sample. Priority pip turns red.">
+                <StaticDetail todo={HIGH_PRIORITY_TODO} />
+              </Frame>
+            </div>
+          </div>
+
+          {/* ─── Support ─── */}
+          <div className="section">
+            <div className="section-head">
+              <span className="section-num">04 — Support</span>
+              <span className="section-title">Contact developers</span>
+              <span className="section-sub">Reachable from the help icon in the list app bar.</span>
+            </div>
+            <div className="row">
+              <Frame num="04.1" label="Support · Default"
+                caption="Phone + email cards stacked. FAQ list below. Tapping phone/email opens the OS dialer / mail composer.">
+                <StaticSupport />
+              </Frame>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function StaticListWithSwipe({ dir }) {
+      const T = T_LIGHT;
+      const tagColors = window.TAG_COLORS_LIGHT;
+      const todos = SAMPLE_TODOS.filter(t => !t.done);
+      const swipeIdx = dir === 'right' ? 0 : 1;
+      const open = todos;
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.surface, position: 'relative' }}>
+          <div style={{ padding: '12px 8px 4px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <button style={iconBtn()}>{Icon.help(T.onSurfaceVariant)}</button>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button style={iconBtn()}>{Icon.search(T.onSurfaceVariant)}</button>
+              <button style={iconBtn()}>{Icon.filter(T.onSurfaceVariant)}</button>
+            </div>
+          </div>
+          <div style={{ padding: '4px 24px 12px' }}>
+            <div style={{ fontSize: 32, fontWeight: 400, letterSpacing: -0.4, color: T.onSurface, lineHeight: 1.1 }}>Today</div>
+            <div style={{ marginTop: 4, color: T.onSurfaceVariant, fontSize: 13.5 }}>
+              Wed, May 6 · {open.length} open · 2 done
+            </div>
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden', padding: '0 16px 16px' }}>
+            {open.map((t, i) => (
+              <StaticTodoCard
+                key={t.id} t={t} T={T} tagColors={tagColors}
+                swipeState={i === swipeIdx ? { dir, x: 110 } : null}
+              />
+            ))}
+          </div>
+          <div style={{
+            position: 'absolute', right: 16, bottom: 16,
+            height: 56, padding: '0 22px 0 18px', borderRadius: 18,
+            background: T.primaryContainer, color: T.onPrimaryContainer,
+            display: 'flex', alignItems: 'center', gap: 8,
+            boxShadow: '0 4px 12px rgba(0,0,0,.18)',
+            fontSize: 14.5, fontWeight: 500,
+          }}>
+            {Icon.plus(T.onPrimaryContainer)} New task
+          </div>
+        </div>
+      );
+    }
+
+    function StaticListEmpty() {
+      const T = T_LIGHT;
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.surface, position: 'relative' }}>
+          <div style={{ padding: '12px 8px 4px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <button style={iconBtn()}>{Icon.help(T.onSurfaceVariant)}</button>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button style={iconBtn()}>{Icon.search(T.onSurfaceVariant)}</button>
+              <button style={iconBtn()}>{Icon.filter(T.onSurfaceVariant)}</button>
+            </div>
+          </div>
+          <div style={{ padding: '4px 24px 12px' }}>
+            <div style={{ fontSize: 32, fontWeight: 400, letterSpacing: -0.4, color: T.onSurface, lineHeight: 1.1 }}>All done</div>
+            <div style={{ marginTop: 4, color: T.onSurfaceVariant, fontSize: 13.5 }}>
+              Wed, May 6 · 0 open
+            </div>
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', padding: '0 32px', textAlign: 'center' }}>
+            <div style={{
+              width: 96, height: 96, borderRadius: 32,
+              background: T.primaryContainer, color: T.onPrimaryContainer,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+            }}>
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12.5 L10 17.5 L19 7.5" stroke={T.onPrimaryContainer} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 500, color: T.onSurface, letterSpacing: -0.2 }}>
+              You're caught up
+            </div>
+            <div style={{ fontSize: 14, color: T.onSurfaceVariant, marginTop: 8, lineHeight: 1.5 }}>
+              No tasks open for today. Tap the button below to add the next one.
+            </div>
+          </div>
+          <div style={{
+            position: 'absolute', right: 16, bottom: 16,
+            height: 56, padding: '0 22px 0 18px', borderRadius: 18,
+            background: T.primaryContainer, color: T.onPrimaryContainer,
+            display: 'flex', alignItems: 'center', gap: 8,
+            boxShadow: '0 4px 12px rgba(0,0,0,.18)',
+            fontSize: 14.5, fontWeight: 500,
+          }}>
+            {Icon.plus(T.onPrimaryContainer)} New task
+          </div>
+        </div>
+      );
+    }
+
+    Object.assign(window, { StaticListWithSwipe, StaticListEmpty });
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
